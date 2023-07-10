@@ -39,7 +39,7 @@ if __name__ == '__main__':
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
 
     # training loop
-    for epoch in range(args.epochs):  # 10 에폭 동안 학습합니다.
+    for epoch in range(args.epochs):
         model.train()
         epoch_loss = 0
         for images, masks in tqdm(dataloader):
@@ -55,3 +55,8 @@ if __name__ == '__main__':
             epoch_loss += loss.item()
 
         print(f'Epoch {epoch+1}, Loss: {epoch_loss/len(dataloader)}')
+    
+    # save model
+    model_dir = f'./models/{args.model}_{time}.pt'
+    torch.save(model.state_dict(), model_dir)
+    print(f"Model saved at {model_dir}")

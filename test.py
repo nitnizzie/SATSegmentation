@@ -16,7 +16,11 @@ if __name__ == '__main__':
     parser.add_argument('-b', '--batch_size', type=int, default=16)
     parser.add_argument('-m', '--model', type=str, default="Unet",
         choices=["Unet", "Unet++", "FPN", "PSPNet", "DeepLabV3", "DeepLabV3+"])
+    parser.add_argument('--model_dir', type=str, default=None)
     args = parser.parse_args()
+
+    time = datetime.now().strftime('%m_%d_%H:%M:%S')
+    model_dir = f'./models/{args.model_dir}'
 
     print("options:", args)
 
@@ -26,7 +30,10 @@ if __name__ == '__main__':
     test_dataloader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=4)
 
     # model initialization
-    model = load_model(args.model)
+    if args.model_dir:
+        model = torch.load_state_dict(torch.load(args.model_dir))
+    else:
+        model = load_model(args.model)
     model.to(device)
 
     with torch.no_grad():
@@ -52,4 +59,7 @@ if __name__ == '__main__':
     submit = pd.read_csv('./sample_submission.csv')
     submit['mask_rle'] = result
 
-    submit.to_csv('./submit.csv', index=False)  
+    if args.model_dir:
+        submit.to_csv(f'./submit/{args.model_dir}.csv', index=False)
+    else:
+        submit.to_csv(f'./submit/{args.model}_{time}.csv', index=False)
