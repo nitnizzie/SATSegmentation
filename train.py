@@ -37,6 +37,10 @@ if __name__ == '__main__':
     # loss function과 optimizer 정의
     criterion = torch.nn.BCEWithLogitsLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+    # define learning rate scheduler (not used in this NB)
+    lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
+        optimizer, T_0=1, T_mult=2, eta_min=5e-5,
+    )
 
     # training loop
     for epoch in range(args.epochs):  # 10 에폭 동안 학습합니다.
@@ -48,7 +52,9 @@ if __name__ == '__main__':
 
             optimizer.zero_grad()
             outputs = model(images)
-            loss = criterion(outputs, masks.unsqueeze(1))
+            outputs = torch.argmax(outputs, dim=1)
+
+            loss = criterion(outputs.unsqueeze(1), masks.unsqueeze(1))
             loss.backward()
             optimizer.step()
 
