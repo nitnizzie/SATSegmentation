@@ -6,6 +6,7 @@ import albumentations as A
 from albumentations.pytorch import ToTensorV2
 import argparse
 from datetime import datetime
+import torch.nn.functional as F
 
 from models import load_model
 from dataset import SatelliteDataset
@@ -26,7 +27,7 @@ if __name__ == '__main__':
     print("options:", args)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
+    print(f'running on device: {device}')
     dataset = SatelliteDataset(csv_file='./train.csv', transform=transform)
     dataloader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True, num_workers=4)
 
@@ -52,9 +53,12 @@ if __name__ == '__main__':
 
             optimizer.zero_grad()
             outputs = model(images)
-            outputs = torch.argmax(outputs, dim=1)
+            # outputs = torch.argmax(outputs, dim=1)
 
-            loss = criterion(outputs.unsqueeze(1), masks.unsqueeze(1))
+            masks = F.one_hot(torch.tensor(masks).to(torch.int64), num_classes=2).permute(0, 3, 1, 2).float().to(device)
+
+
+            loss = criterion(outputs, masks)
             loss.backward()
             optimizer.step()
 
@@ -63,6 +67,6 @@ if __name__ == '__main__':
         print(f'Epoch {epoch+1}, Loss: {epoch_loss/len(dataloader)}')
     
     # save model
-    model_dir = f'./models/{args.model}_{time}.pt'
+    model_dir = f'./models/{args.model}_{time}_lr{args.lr}_epoch{args.epochs}.pt'
     torch.save(model.state_dict(), model_dir)
     print(f"Model saved at {model_dir}")

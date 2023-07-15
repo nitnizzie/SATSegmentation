@@ -17,7 +17,7 @@ def load_model(model_name: str) -> nn.Module:
         # segmentation model - deeplabv3
         ENCODER = 'resnet101'
         ENCODER_WEIGHTS = 'imagenet'
-        CLASSES = ['buildings', 'background']
+        CLASSES = ['background', 'buildings']
         ACTIVATION = 'sigmoid'  # could be None for logits or 'softmax2d' for multiclass segmentation
 
         # deeplab v3

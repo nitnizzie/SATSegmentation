@@ -30,10 +30,9 @@ if __name__ == '__main__':
     test_dataloader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=4)
 
     # model initialization
+    model = load_model(args.model)
     if args.model_dir:
-        model = torch.load_state_dict(torch.load(args.model_dir))
-    else:
-        model = load_model(args.model)
+        model.load_state_dict(torch.load(model_dir))
     model.to(device)
 
     with torch.no_grad():
@@ -43,12 +42,17 @@ if __name__ == '__main__':
             images = images.float().to(device)
             
             outputs = model(images)
-            outputs = torch.argmax(outputs, dim=1)
-            masks = torch.sigmoid(outputs).cpu().numpy()
+            # outputs = torch.argmax(outputs, dim=1)
+            # masks = outputs[:, 1, :, :]
             # print(images.shape, outputs.shape, masks.shape)
             # masks = np.squeeze(masks, axis=1)
-            masks = (masks > 0.35).astype(np.uint8) # Threshold = 0.35
-            
+            print(outputs[0, 1, :, :].view(-1)[:200])
+            print(outputs[0, 0, :, :].view(-1)[:200])
+
+            # masks = torch.argmax(outputs, dim=1).cpu().numpy()
+            masks = torch.argmin(outputs, dim=1).cpu().numpy()
+
+            print(masks)
             for i in range(len(images)):
                 mask_rle = rle_encode(masks[i])
                 if mask_rle == '': # 예측된 건물 픽셀이 아예 없는 경우 -1
