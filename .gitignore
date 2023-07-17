@@ -1,3 +1,6 @@
 
 *.xml
 *.iml
+train_img
+test_img
+*.csv
