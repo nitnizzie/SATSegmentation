@@ -2,17 +2,19 @@ import torch
 import torch.nn as nn
 import segmentation_models_pytorch as smp
 
-def load_model(model_name: str) -> nn.Module:
+def load_model(model_name: str, preprocessing_fn=False):
     if model_name == "Unet":
-        return UNet()
+        return UNet(), None
     # elif model_name == "Unet++":
     #     return UnetPlus()
     # elif model_name == "FPN":
     #     return FPN()
     # elif model_name == "PSPNet":
     #     return PSPNet()
-    # elif model_name == "DeepLabV3":
-    #     return DeepLabV3()
+    elif model_name == "DeepLabV3":
+        from torchvision.models.segmentation import deeplabv3_resnet101
+        DeeplabV3 = deeplabv3_resnet101(pretrained=False, progress=True, num_classes=2, aux_loss=None)
+        return DeeplabV3, None
     elif model_name == "DeepLabV3+":
         # segmentation model - deeplabv3
         ENCODER = 'resnet101'
@@ -28,7 +30,11 @@ def load_model(model_name: str) -> nn.Module:
             activation=ACTIVATION,
         )
 
-        return model
+        if preprocessing_fn:
+            preprocessing_fn = smp.encoders.get_preprocessing_fn(ENCODER, ENCODER_WEIGHTS)
+            return model, preprocessing_fn
+        else:
+            return model, None
     else:
         raise NotImplementedError(f"model {model_name} is not implemented")
 

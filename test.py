@@ -8,7 +8,8 @@ from datetime import datetime
 
 from models import load_model
 from dataset import SatelliteDataset
-from utils import transform, rle_encode, rle_decode
+from utils import rle_encode, rle_decode
+import albumentations as A
 
 if __name__ == '__main__':
     # parse arguments
@@ -26,11 +27,21 @@ if __name__ == '__main__':
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+    mean = [0.485, 0.456, 0.406]
+    std = [0.229, 0.224, 0.225]
+    transform = A.Compose(
+        [
+            A.Resize(224, 224),
+            A.Normalize(mean=mean, std=std, always_apply=True),
+            A.pytorch.ToTensorV2(),
+        ]
+    )
+
     test_dataset = SatelliteDataset(csv_file='./test.csv', transform=transform, infer=True)
     test_dataloader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=4)
 
     # model initialization
-    model = load_model(args.model)
+    model, _ = load_model(args.model)
     if args.model_dir:
         model.load_state_dict(torch.load(model_dir))
     model.to(device)
@@ -49,8 +60,8 @@ if __name__ == '__main__':
             print(outputs[0, 1, :, :].view(-1)[:200])
             print(outputs[0, 0, :, :].view(-1)[:200])
 
-            # masks = torch.argmax(outputs, dim=1).cpu().numpy()
-            masks = torch.argmin(outputs, dim=1).cpu().numpy()
+            masks = torch.argmax(outputs, dim=1).cpu().numpy()
+            # masks = torch.argmin(outputs, dim=1).cpu().numpy()
 
             print(masks)
             for i in range(len(images)):
@@ -64,6 +75,6 @@ if __name__ == '__main__':
     submit['mask_rle'] = result
 
     if args.model_dir:
-        submit.to_csv(f'./submit/{args.model_dir}.csv', index=False)
+        submit.to_csv(f'./submit/{args.model_dir}_{time}.csv', index=False)
     else:
         submit.to_csv(f'./submit/{args.model}_{time}.csv', index=False)
