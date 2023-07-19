@@ -13,7 +13,7 @@ def load_model(model_name: str, preprocessing_fn=False):
     #     return PSPNet()
     elif model_name == "DeepLabV3":
         from torchvision.models.segmentation import deeplabv3_resnet101
-        DeeplabV3 = deeplabv3_resnet101(pretrained=False, progress=True, num_classes=2, aux_loss=None)
+        DeeplabV3 = deeplabv3_resnet101(pretrained=False, progress=True, num_classes=1, aux_loss=None)
         return DeeplabV3, None
     elif model_name == "DeepLabV3+":
         # segmentation model - deeplabv3
