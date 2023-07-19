@@ -169,7 +169,7 @@ if __name__ == '__main__':
         with torch.no_grad():
             model.eval()
             val_loss = 0
-            val_dice_score = 0
+            val_dice_score = []
             for images, masks in tqdm(val_dataloader):
                 if len(images.shape) == 5:
                     images = torch.stack(images)
@@ -185,9 +185,9 @@ if __name__ == '__main__':
                     numpy_outputs = outputs.squeeze().cpu().numpy()
 
                     # cast to uint8
-                    mask_05 = (numpy_outputs > 0.5).uint8().float32()
-                    mask_03 = (numpy_outputs > 0.3).uint8().float32()
-                    mask_02 = (numpy_outputs > 0.2).uint8().float32()
+                    mask_05 = (numpy_outputs > 0.5).astype(np.uint8).astype(np.float32)
+                    mask_03 = (numpy_outputs > 0.3).astype(np.uint8).astype(np.float32)
+                    mask_02 = (numpy_outputs > 0.2).astype(np.uint8).astype(np.float32)
 
                     from utils import dice_score
                     dice_score_05 = dice_score(mask_05, masks.squeeze().cpu().numpy())
