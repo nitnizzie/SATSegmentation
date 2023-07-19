@@ -1,14 +1,16 @@
 import cv2
 import pandas as pd
+import torch
 from torch.utils.data import Dataset
 import numpy as np
 from utils import rle_decode 
 
 class SatelliteDataset(Dataset):
-    def __init__(self, csv_file, transform=None, infer=False):
+    def __init__(self, csv_file, transform=None, infer=False, args=None):
         self.data = pd.read_csv(csv_file)
         self.transform = transform
         self.infer = infer
+        self.args = args
 
     def __len__(self):
         return len(self.data)
@@ -30,8 +32,7 @@ class SatelliteDataset(Dataset):
             augmented = self.transform(image=image, mask=mask)
             image = augmented['image']
             mask = augmented['mask']
-
-        return image, mask
+            return image, mask
 
     # Perform one hot encoding on label
     def one_hot_encode(self, label, label_values):
