@@ -162,6 +162,8 @@ if __name__ == '__main__':
             optimizer.zero_grad()
             if args.model == 'DeepLabV3':
                 outputs = torch.sigmoid(model(images)['out'])
+                # arctangent
+                # outputs = torch.atan(model(images)['out'])
                 loss = criterion(outputs.squeeze(), masks.squeeze())
             else:
                 outputs = model(images)
