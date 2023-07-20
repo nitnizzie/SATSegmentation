@@ -88,7 +88,7 @@ if __name__ == '__main__':
                 [
                     # RandomSizedCrop
                     A.RandomSizedCrop(
-                        min_max_height=(100, 1000), height=224, width=224, p=1
+                        min_max_height=(224, 224), height=224, width=224, p=1
                     ),
                     A.Flip(p=0.5),
                     A.Rotate(limit=[-10, 10], p=0.5),
