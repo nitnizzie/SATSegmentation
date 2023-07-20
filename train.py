@@ -83,6 +83,19 @@ if __name__ == '__main__':
                     A.pytorch.ToTensorV2(),
                 ]
             )
+        elif args.transform == 2:
+            transform_deeplab = A.Compose(
+                [
+                    # RandomSizedCrop
+                    A.RandomSizedCrop(
+                        min_max_height=(100, 1000), height=224, width=224, p=1
+                    ),
+                    A.Flip(p=0.5),
+                    A.Rotate(limit=[-10, 10], p=0.5),
+                    A.Normalize(mean=mean, std=std, always_apply=True),
+                    A.pytorch.ToTensorV2(),
+                ]
+            )
         else:
             raise NotImplementedError
 
