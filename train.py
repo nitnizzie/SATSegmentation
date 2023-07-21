@@ -229,5 +229,6 @@ if __name__ == '__main__':
 
 
             if lowest_loss_yet > val_loss / len(val_dataloader):
+                lowest_loss_yet = val_loss / len(val_dataloader)
                 save_model(model, fname)
                 print(f'lowest loss, saving current model at epoch: {epoch}')
