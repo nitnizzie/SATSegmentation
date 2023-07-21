@@ -27,6 +27,7 @@ for lr in $LR; do
           --gpu_idx ${GPUS[$i]} \
           -m DeepLabV3 \
           --preprocess_fn \
+          --transform 2 \
           -lr "$lr" \
           -ep "$epoch" \
           --home '/content/drive/MyDrive/Dacon' \
@@ -39,6 +40,7 @@ for lr in $LR; do
           --gpu_idx ${GPUS[$i]} \
           -m DeepLabV3 \
           --preprocess_fn \
+          --transform 2 \
           --loss_fn dice \
           -lr "$lr" \
           -ep "$epoch" \
@@ -53,6 +55,7 @@ for lr in $LR; do
           -m DeepLabV3 \
           --loss_fn dice_v2 \
           --preprocess_fn \
+          --transform 2 \
           -lr "$lr" \
           -ep "$epoch" \
           --home '/content/drive/MyDrive/Dacon' \
