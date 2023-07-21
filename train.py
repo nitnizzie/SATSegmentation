@@ -90,7 +90,7 @@ if __name__ == '__main__':
                     A.RandomSizedCrop(
                         min_max_height=(224, 224), height=224, width=224, p=1
                     ),
-                    A.Flip.apply(d=1, p=0.5),
+                    A.HorizontalFlip(p=0.5),
                     A.Rotate(limit=[-10, 10], p=0.5),
                     A.Normalize(mean=mean, std=std, always_apply=True),
                     A.pytorch.ToTensorV2(),
