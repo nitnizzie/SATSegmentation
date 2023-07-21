@@ -17,11 +17,12 @@ if __name__ == '__main__':
     parser.add_argument('-b', '--batch_size', type=int, default=16)
     parser.add_argument('-m', '--model', type=str, default="Unet",
         choices=["Unet", "Unet++", "FPN", "PSPNet", "DeepLabV3", "DeepLabV3+"])
+    parser.add_argument('-hm', '--home', type=str, default='.')
     parser.add_argument('--model_dir', type=str, default=None)
     args = parser.parse_args()
 
     time = datetime.now().strftime('%m_%d_%H:%M:%S')
-    model_dir = f'./models/{args.model_dir}'
+    model_dir = f'{args.home}/models/{args.model_dir}'
 
     print("options:", args)
 
@@ -37,7 +38,7 @@ if __name__ == '__main__':
         ]
     )
 
-    test_dataset = SatelliteDataset(csv_file='./test.csv', transform=transform, infer=True)
+    test_dataset = SatelliteDataset(csv_file=f'{args.home}/test.csv', transform=transform, infer=True)
     test_dataloader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=4)
 
     # model initialization
@@ -71,10 +72,10 @@ if __name__ == '__main__':
                 else:
                     result.append(mask_rle)
 
-    submit = pd.read_csv('./sample_submission.csv')
+    submit = pd.read_csv(f'{args.home}/sample_submission.csv')
     submit['mask_rle'] = result
 
     if args.model_dir:
-        submit.to_csv(f'./submit/{args.model_dir}_{time}.csv', index=False)
+        submit.to_csv(f'{args.home}/submit/{args.model_dir}_{time}.csv', index=False)
     else:
-        submit.to_csv(f'./submit/{args.model}_{time}.csv', index=False)
+        submit.to_csv(f'{args.home}/submit/{args.model}_{time}.csv', index=False)

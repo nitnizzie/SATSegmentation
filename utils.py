@@ -116,8 +116,8 @@ def calculate_dice_scores(ground_truth_df, prediction_df, img_shape=(224, 224)):
 
     return np.mean(dice_scores)
 
-def save_model(model, fname):
+def save_model(home, model, fname):
     # save model
-    model_dir = f'./models/{fname}.pt'
+    model_dir = f'{home}/models/{fname}.pt'
     torch.save(model.state_dict(), model_dir)
     print(f"Model saved at {model_dir}")

@@ -25,11 +25,11 @@ if __name__ == '__main__':
     parser.add_argument('-ep', '--epochs', type=int, default=80)
     parser.add_argument('-m', '--model', type=str, default="Unet",
         choices=["Unet", "Unet++", "FPN", "PSPNet", "DeepLabV3", "DeepLabV3+"])
+    parser.add_argument('-hm', '--home', type=str, default='.')
     parser.add_argument('--preprocess_fn', action='store_true', default=False)
     parser.add_argument('--loss_fn', type=str, default='default')
     parser.add_argument('--gpu_idx', type=int, default=0)
     parser.add_argument('--transform', type=int, default=0)
-
 
     args = parser.parse_args()
     time = datetime.now().strftime('%m_%d_%H:%M:%S')
@@ -99,8 +99,8 @@ if __name__ == '__main__':
         else:
             raise NotImplementedError
 
-        dataset_1 = SatelliteDataset(csv_file='./train.csv', transform=transform_deeplab, args=args)
-        dataset_2 = SatelliteDataset(csv_file='./train.csv', transform=transform_deeplab, args=args)
+        dataset_1 = SatelliteDataset(csv_file=f'{args.home}/train.csv', transform=transform_deeplab, args=args)
+        dataset_2 = SatelliteDataset(csv_file=f'{args.home}/train.csv', transform=transform_deeplab, args=args)
         dataset = torch.utils.data.ConcatDataset([dataset_1, dataset_2])
         dataset_size = len(dataset)
 
@@ -229,5 +229,5 @@ if __name__ == '__main__':
 
 
             if lowest_loss_yet > val_loss / len(val_dataloader):
-                save_model(model, fname)
+                save_model(args.home, model, fname)
                 print(f'lowest loss, saving current model at epoch: {epoch}')

@@ -29,6 +29,7 @@ for lr in $LR; do
           --preprocess_fn \
           -lr "$lr" \
           -ep "$epoch" \
+          --home '/content/drive/MyDrive/Dacon' \
           2>&1 &
     wait_n
     # increment i
@@ -41,6 +42,7 @@ for lr in $LR; do
           --loss_fn dice \
           -lr "$lr" \
           -ep "$epoch" \
+          --home '/content/drive/MyDrive/Dacon' \
           2>&1 &
     wait_n
     # increment i
@@ -53,6 +55,7 @@ for lr in $LR; do
           --preprocess_fn \
           -lr "$lr" \
           -ep "$epoch" \
+          --home '/content/drive/MyDrive/Dacon' \
           2>&1 &
     wait_n
     # increment i
