@@ -18,6 +18,7 @@ if __name__ == '__main__':
     parser.add_argument('-m', '--model', type=str, default="Unet",
         choices=["Unet", "Unet++", "FPN", "PSPNet", "DeepLabV3", "DeepLabV3+"])
     parser.add_argument('--model_dir', type=str, default=None)
+    parser.add_argument('--mask_ratio', type=float, default=0.35)
     args = parser.parse_args()
 
     time = datetime.now().strftime('%m_%d_%H:%M:%S')
@@ -51,19 +52,25 @@ if __name__ == '__main__':
         result = []
         for images in tqdm(test_dataloader):
             images = images.float().to(device)
-            
-            outputs = model(images)
-            # outputs = torch.argmax(outputs, dim=1)
-            # masks = outputs[:, 1, :, :]
-            # print(images.shape, outputs.shape, masks.shape)
-            # masks = np.squeeze(masks, axis=1)
-            print(outputs[0, 1, :, :].view(-1)[:200])
-            print(outputs[0, 0, :, :].view(-1)[:200])
 
-            masks = torch.argmax(outputs, dim=1).cpu().numpy()
-            # masks = torch.argmin(outputs, dim=1).cpu().numpy()
+            if args.model == 'DeepLabV3':
+                outputs = model(images)['out']
+                outputs = torch.sigmoid(outputs)
+                outputs = outputs.cpu().numpy()
+                masks = (outputs > args.mask_ratio).astype(np.uint8).astype(np.float32)
 
-            print(masks)
+            else:
+                outputs = model(images)
+                # outputs = torch.argmax(outputs, dim=1)
+                # masks = outputs[:, 1, :, :]
+                # print(images.shape, outputs.shape, masks.shape)
+                # masks = np.squeeze(masks, axis=1)
+                print(outputs[0, 1, :, :].view(-1)[:200])
+                print(outputs[0, 0, :, :].view(-1)[:200])
+
+                masks = torch.argmax(outputs, dim=1).cpu().numpy()
+                # masks = torch.argmin(outputs, dim=1).cpu().numpy()
+
             for i in range(len(images)):
                 mask_rle = rle_encode(masks[i])
                 if mask_rle == '': # 예측된 건물 픽셀이 아예 없는 경우 -1
@@ -75,6 +82,6 @@ if __name__ == '__main__':
     submit['mask_rle'] = result
 
     if args.model_dir:
-        submit.to_csv(f'./submit/{args.model_dir}_{time}.csv', index=False)
+        submit.to_csv(f'./submit/{args.model_dir}_{time}_mask_ratio{args.mask_ratio}.csv', index=False)
     else:
-        submit.to_csv(f'./submit/{args.model}_{time}.csv', index=False)
+        submit.to_csv(f'./submit/{args.model}_{time}_mask_ratio{args.mask_ratio}.csv', index=False)

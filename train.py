@@ -29,6 +29,8 @@ if __name__ == '__main__':
     parser.add_argument('--loss_fn', type=str, default='default')
     parser.add_argument('--gpu_idx', type=int, default=0)
     parser.add_argument('--transform', type=int, default=0)
+    parser.add_argument('--wo_sigmoid', action='store_true', default=False)
+
 
 
     args = parser.parse_args()
@@ -37,6 +39,8 @@ if __name__ == '__main__':
     # file name
     fname = f"{args.model}_{time}_lossfn{args.loss_fn}_lr{args.lr}_epoch{args.epochs}_transform{args.transform}"
 
+    if args.wo_sigmoid:
+        fname += "_wo_sigmoid"
 
 
     # Create a logger
@@ -83,12 +87,28 @@ if __name__ == '__main__':
                     A.pytorch.ToTensorV2(),
                 ]
             )
+        elif args.transform == 2:
+            transform_deeplab = A.Compose(
+                [
+                    # RandomSizedCrop
+                    A.RandomSizedCrop(
+                        min_max_height=(224, 224), height=224, width=224, p=1
+                    ),
+                    A.HorizontalFlip(p=0.5),
+                    A.Rotate(limit=[-10, 10], p=0.5),
+                    A.Normalize(mean=mean, std=std, always_apply=True),
+                    A.pytorch.ToTensorV2(),
+                ]
+            )
         else:
             raise NotImplementedError
 
         dataset_1 = SatelliteDataset(csv_file='./train.csv', transform=transform_deeplab, args=args)
         dataset_2 = SatelliteDataset(csv_file='./train.csv', transform=transform_deeplab, args=args)
-        dataset = torch.utils.data.ConcatDataset([dataset_1, dataset_2])
+        dataset_3 = SatelliteDataset(csv_file='./train.csv', transform=transform_deeplab, args=args)
+        dataset_4 = SatelliteDataset(csv_file='./train.csv', transform=transform_deeplab, args=args)
+
+        dataset = torch.utils.data.ConcatDataset([dataset_1, dataset_2, dataset_3, dataset_4])
         dataset_size = len(dataset)
 
         train_size = int(0.8 * dataset_size)
@@ -96,8 +116,8 @@ if __name__ == '__main__':
 
         train_set, val_set = torch.utils.data.random_split(dataset, [train_size, val_size])
 
-        train_dataloader = DataLoader(train_set, batch_size=4, shuffle=True, num_workers=4)
-        val_dataloader = DataLoader(val_set, batch_size=4, shuffle=True, num_workers=4)
+        train_dataloader = DataLoader(train_set, batch_size=32, shuffle=True, num_workers=4)
+        val_dataloader = DataLoader(val_set, batch_size=32, shuffle=True, num_workers=4)
     else:
         raise NotImplementedError
         # from utils import transform
@@ -148,7 +168,10 @@ if __name__ == '__main__':
 
             optimizer.zero_grad()
             if args.model == 'DeepLabV3':
-                outputs = torch.sigmoid(model(images)['out'])
+                if args.wo_sigmoid:
+                    outputs = model(images)['out']
+                else:
+                    outputs = torch.sigmoid(model(images)['out'])
                 loss = criterion(outputs.squeeze(), masks.squeeze())
             else:
                 outputs = model(images)
@@ -214,5 +237,6 @@ if __name__ == '__main__':
 
 
             if lowest_loss_yet > val_loss / len(val_dataloader):
+                lowest_loss_yet = val_loss / len(val_dataloader)
                 save_model(model, fname)
                 print(f'lowest loss, saving current model at epoch: {epoch}')
