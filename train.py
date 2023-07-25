@@ -116,8 +116,8 @@ if __name__ == '__main__':
 
         train_set, val_set = torch.utils.data.random_split(dataset, [train_size, val_size])
 
-        train_dataloader = DataLoader(train_set, batch_size=32, shuffle=True, num_workers=4)
-        val_dataloader = DataLoader(val_set, batch_size=32, shuffle=True, num_workers=4)
+        train_dataloader = DataLoader(train_set, batch_size=16, shuffle=True, num_workers=4)
+        val_dataloader = DataLoader(val_set, batch_size=16, shuffle=True, num_workers=4)
     else:
         raise NotImplementedError
         # from utils import transform
