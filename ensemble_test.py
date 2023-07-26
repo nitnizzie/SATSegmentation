@@ -22,7 +22,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     time = datetime.now().strftime('%m_%d_%H:%M:%S')
-    model_dir = f'./models/{args.model_dir}'
+    model_dir_1 = f'./models/{args.model_dir_1}'
+    model_dir_2 = f'./models/{args.model_dir_2}'
 
     print("options:", args)
 
@@ -44,11 +45,11 @@ if __name__ == '__main__':
     # model initialization
     model_1, _ = load_model(args.model)
     if args.model_dir_1:
-        model_1.load_state_dict(torch.load(model_dir))
+        model_1.load_state_dict(torch.load(model_dir_1))
     model_1.to(device)
     model_2, _ = load_model(args.model)
     if args.model_dir_2:
-        model_2.load_state_dict(torch.load(model_dir))
+        model_2.load_state_dict(torch.load(model_dir_2))
     model_2.to(device)
 
     with torch.no_grad():
