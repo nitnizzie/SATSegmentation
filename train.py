@@ -23,13 +23,14 @@ if __name__ == '__main__':
     parser.add_argument('-b', '--batch_size', type=int, default=16)
     parser.add_argument('-lr', '--lr', type=float, default=0.0001)
     parser.add_argument('-ep', '--epochs', type=int, default=80)
-    parser.add_argument('-m', '--model', type=str, default="Unet",
+    parser.add_argument('-m', '--model', type=str, default="DeepLabV3",
         choices=["Unet", "Unet++", "FPN", "PSPNet", "DeepLabV3", "DeepLabV3+"])
-    parser.add_argument('--preprocess_fn', action='store_true', default=False)
-    parser.add_argument('--loss_fn', type=str, default='default')
+    parser.add_argument('--preprocess_fn', action='store_true', default=True)
+    parser.add_argument('--loss_fn', type=str, default='dice_v2')
     parser.add_argument('--gpu_idx', type=int, default=0)
-    parser.add_argument('--transform', type=int, default=0)
-    parser.add_argument('--wo_sigmoid', action='store_true', default=False)
+    parser.add_argument('--transform', type=int, default=2)
+    parser.add_argument('--wo_sigmoid', action='store_true', default=True)
+    parser.add_argument('-d', '--dataset', type=int, default=4)
 
 
 
@@ -37,7 +38,7 @@ if __name__ == '__main__':
     time = datetime.now().strftime('%m_%d_%H:%M:%S')
 
     # file name
-    fname = f"{args.model}_{time}_lossfn{args.loss_fn}_lr{args.lr}_epoch{args.epochs}_transform{args.transform}"
+    fname = f"{args.model}_{time}_lossfn{args.loss_fn}_lr{args.lr}_epoch{args.epochs}_transform{args.transform}_dataset{args.dataset}"
 
     if args.wo_sigmoid:
         fname += "_wo_sigmoid"
@@ -57,6 +58,7 @@ if __name__ == '__main__':
     device = f'cuda:{args.gpu_idx}' if torch.cuda.is_available() else 'cpu'
     print(f'running on device: {device}')
     logger.info('running on device: %s', device)
+    logger.info("options: %s", args)
 
     # model initialization
     model, preprocess_fn = load_model(args.model)
@@ -108,7 +110,20 @@ if __name__ == '__main__':
         dataset_3 = SatelliteDataset(csv_file='./train.csv', transform=transform_deeplab, args=args)
         dataset_4 = SatelliteDataset(csv_file='./train.csv', transform=transform_deeplab, args=args)
 
-        dataset = torch.utils.data.ConcatDataset([dataset_1, dataset_2, dataset_3, dataset_4])
+        if args.dataset == 2:
+            dataset = torch.utils.data.ConcatDataset([dataset_1, dataset_2])
+        elif args.dataset == 4:
+            dataset = torch.utils.data.ConcatDataset([dataset_1, dataset_2, dataset_3, dataset_4])
+        elif args.dataset == 8:
+            dataset_5 = SatelliteDataset(csv_file='./train.csv', transform=transform_deeplab, args=args)
+            dataset_6 = SatelliteDataset(csv_file='./train.csv', transform=transform_deeplab, args=args)
+            dataset_7 = SatelliteDataset(csv_file='./train.csv', transform=transform_deeplab, args=args)
+            dataset_8 = SatelliteDataset(csv_file='./train.csv', transform=transform_deeplab, args=args)
+            dataset = torch.utils.data.ConcatDataset([dataset_1, dataset_2, dataset_3, dataset_4, dataset_5, dataset_6, dataset_7, dataset_8])
+        else:
+            raise NotImplementedError
+        
+
         dataset_size = len(dataset)
 
         train_size = int(0.8 * dataset_size)

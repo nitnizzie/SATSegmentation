@@ -15,7 +15,7 @@ if __name__ == '__main__':
     # parse arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('-b', '--batch_size', type=int, default=16)
-    parser.add_argument('-m', '--model', type=str, default="Unet",
+    parser.add_argument('-m', '--model', type=str, default="DeepLabV3",
         choices=["Unet", "Unet++", "FPN", "PSPNet", "DeepLabV3", "DeepLabV3+"])
     parser.add_argument('--model_dir', type=str, default=None)
     parser.add_argument('--mask_ratio', type=float, default=0.35)

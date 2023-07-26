@@ -4,3 +4,7 @@
 train_img
 test_img
 *.csv
+log/
+models/
+submit/
+__pycache__/
