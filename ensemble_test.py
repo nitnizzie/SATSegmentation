@@ -15,10 +15,11 @@ if __name__ == '__main__':
     # parse arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('-b', '--batch_size', type=int, default=16)
-    parser.add_argument('-m', '--model', type=str, default="Unet",
+    parser.add_argument('-m', '--model', type=str, default="DeepLabV3",
         choices=["Unet", "Unet++", "FPN", "PSPNet", "DeepLabV3", "DeepLabV3+"])
     parser.add_argument('--model_dir_1', type=str, default=None)
     parser.add_argument('--model_dir_2', type=str, default=None)
+    parser.add_argument('--mask_ratio', type=float, default=0.35)
     args = parser.parse_args()
 
     time = datetime.now().strftime('%m_%d_%H:%M:%S')
@@ -58,14 +59,19 @@ if __name__ == '__main__':
         for images in tqdm(test_dataloader):
             images = images.float().to(device)
             
-            outputs_1 = model_1(images)
-            outputs_2 = model_2(images)
-        
-            masks_1 = torch.argmax(outputs_1, dim=1).cpu().numpy()
-            masks_2 = torch.argmax(outputs_2, dim=1).cpu().numpy()
-            
+            outputs_1 = model_1(images)['out']
+            outputs_1 = torch.sigmoid(outputs_1)
+            # outputs_1 = outputs_1.cpu().numpy()
+
+            outputs_2 = model_2(images)['out']
+            outputs_2 = torch.sigmoid(outputs_2)
+            # outputs_2 = outputs_2.cpu().numpy()
+
             # avg
-            masks = (masks_1 + masks_2) / 2
+            outputs = (outputs_1 + outputs_2) / 2
+            outputs = outputs.cpu().numpy()
+
+            masks = (outputs > args.mask_ratio).astype(np.uint8).astype(np.float32)
 
             for i in range(len(images)):
                 mask_rle = rle_encode(masks[i])
@@ -78,6 +84,6 @@ if __name__ == '__main__':
     submit['mask_rle'] = result
 
     if args.model_dir:
-        submit.to_csv(f'./submit/{args.model_dir}_{time}.csv', index=False)
+        submit.to_csv(f'./submit/{args.model_dir}_{time}_mask_ratio{args.mask_ratio}.csv', index=False)
     else:
-        submit.to_csv(f'./submit/{args.model}_{time}.csv', index=False)
+        submit.to_csv(f'./submit/{args.model}_{time}_mask_ratio{args.mask_ratio}.csv', index=False)
