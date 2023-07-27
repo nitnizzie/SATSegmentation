@@ -120,6 +120,6 @@ if __name__ == '__main__':
     submit['mask_rle'] = result
 
     if args.model_dir:
-        submit.to_csv(f'./submit/{args.model_dir}_{time}_mask_ratio{args.mask_ratio}_ensemble.csv', index=False)
+        submit.to_csv(f'./submit/{args.model}_{time}_mask_ratio{args.mask_ratio}_ensemble.csv', index=False)
     else:
         submit.to_csv(f'./submit/{args.model}_{time}_mask_ratio{args.mask_ratio}_ensemble.csv', index=False)

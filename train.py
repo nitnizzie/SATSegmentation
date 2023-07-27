@@ -72,27 +72,59 @@ if __name__ == '__main__':
         mean = [0.485, 0.456, 0.406]
         std = [0.229, 0.224, 0.225]
 
-        if args.transform == 0:
-            transform_deeplab = A.Compose(
+        if args.dataset != 10:
+            if args.transform == 0:
+                transform_deeplab = A.Compose(
+                    [
+                        A.Resize(224, 224),
+                        A.Normalize(mean=mean, std=std, always_apply=True),
+                        A.pytorch.ToTensorV2(),
+                    ]
+                )
+            elif args.transform == 1:
+                transform_deeplab = A.Compose(
+                    [
+                        A.RandomCrop(224, 224),
+                        A.Flip(),
+                        A.Normalize(mean=mean, std=std, always_apply=True),
+                        A.pytorch.ToTensorV2(),
+                    ]
+                )
+            elif args.transform == 2:
+                transform_deeplab = A.Compose(
+                    [
+                        # RandomSizedCrop
+                        A.RandomSizedCrop(
+                            min_max_height=(224, 224), height=224, width=224, p=1
+                        ),
+                        A.HorizontalFlip(p=0.5),
+                        A.Rotate(limit=[-10, 10], p=0.5),
+                        A.Normalize(mean=mean, std=std, always_apply=True),
+                        A.pytorch.ToTensorV2(),
+                    ]
+                )
+            else:
+                raise NotImplementedError
+
+            dataset_1 = SatelliteDataset(csv_file='./train.csv', transform=transform_deeplab, args=args)
+            dataset_2 = SatelliteDataset(csv_file='./train.csv', transform=transform_deeplab, args=args)
+            dataset_3 = SatelliteDataset(csv_file='./train.csv', transform=transform_deeplab, args=args)
+            dataset_4 = SatelliteDataset(csv_file='./train.csv', transform=transform_deeplab, args=args)
+
+            if args.dataset == 2:
+                dataset = torch.utils.data.ConcatDataset([dataset_1, dataset_2])
+            elif args.dataset == 4:
+                dataset = torch.utils.data.ConcatDataset([dataset_1, dataset_2, dataset_3, dataset_4])
+            elif args.dataset == 8:
+                dataset_5 = SatelliteDataset(csv_file='./train.csv', transform=transform_deeplab, args=args)
+                dataset_6 = SatelliteDataset(csv_file='./train.csv', transform=transform_deeplab, args=args)
+                dataset_7 = SatelliteDataset(csv_file='./train.csv', transform=transform_deeplab, args=args)
+                dataset_8 = SatelliteDataset(csv_file='./train.csv', transform=transform_deeplab, args=args)
+                dataset = torch.utils.data.ConcatDataset([dataset_1, dataset_2, dataset_3, dataset_4, dataset_5, dataset_6, dataset_7, dataset_8])
+
+        elif args.dataset == 10:
+            transform_default = A.Compose(
                 [
-                    A.Resize(224, 224),
-                    A.Normalize(mean=mean, std=std, always_apply=True),
-                    A.pytorch.ToTensorV2(),
-                ]
-            )
-        elif args.transform == 1:
-            transform_deeplab = A.Compose(
-                [
-                    A.RandomCrop(224, 224),
-                    A.Flip(),
-                    A.Normalize(mean=mean, std=std, always_apply=True),
-                    A.pytorch.ToTensorV2(),
-                ]
-            )
-        elif args.transform == 2:
-            transform_deeplab = A.Compose(
-                [
-                    # RandomSizedCrop
                     A.RandomSizedCrop(
                         min_max_height=(224, 224), height=224, width=224, p=1
                     ),
@@ -102,24 +134,47 @@ if __name__ == '__main__':
                     A.pytorch.ToTensorV2(),
                 ]
             )
-        else:
-            raise NotImplementedError
+            tranform_blur = A.Compose(
+                [
+                    A.RandomSizedCrop(
+                        min_max_height=(224, 224), height=224, width=224, p=1
+                    ),
+                    A.AdvancedBlur(blur_limit=3, p=1, always_apply=True),
+                    A.Normalize(mean=mean, std=std, always_apply=True),
+                    A.pytorch.ToTensorV2(),
+                ]
+            )
+            tranform_gauss = A.Compose(
+                [
+                    A.RandomSizedCrop(
+                        min_max_height=(224, 224), height=224, width=224, p=1
+                    ),
+                    A.GaussNoise(var_limit=(10.0, 50.0), p=1, always_apply=True),
+                    A.Normalize(mean=mean, std=std, always_apply=True),
+                    A.pytorch.ToTensorV2(),
+                ]
+            )
+            transform_color = A.Compose(
+                [
+                    A.RandomSizedCrop(
+                        min_max_height=(224, 224), height=224, width=224, p=1
+                    ),
+                    A.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2, always_apply=True, p=1),
+                    A.Normalize(mean=mean, std=std, always_apply=True),
+                    A.pytorch.ToTensorV2(),
+                ]
+            )
+            dataset_list = []
+            transform_list = [tranform_blur, tranform_gauss, transform_color]
+            for i in range(5):
+                transform_list.append(transform_default)
 
-        dataset_1 = SatelliteDataset(csv_file='./train.csv', transform=transform_deeplab, args=args)
-        dataset_2 = SatelliteDataset(csv_file='./train.csv', transform=transform_deeplab, args=args)
-        dataset_3 = SatelliteDataset(csv_file='./train.csv', transform=transform_deeplab, args=args)
-        dataset_4 = SatelliteDataset(csv_file='./train.csv', transform=transform_deeplab, args=args)
+            for i in range(len(transform_list)):
+                dataset_list.append(
+                    SatelliteDataset(csv_file='./train.csv', transform=transform_list[i], args=args)
+                )
+            dataset = torch.utils.data.ConcatDataset(dataset_list)
 
-        if args.dataset == 2:
-            dataset = torch.utils.data.ConcatDataset([dataset_1, dataset_2])
-        elif args.dataset == 4:
-            dataset = torch.utils.data.ConcatDataset([dataset_1, dataset_2, dataset_3, dataset_4])
-        elif args.dataset == 8:
-            dataset_5 = SatelliteDataset(csv_file='./train.csv', transform=transform_deeplab, args=args)
-            dataset_6 = SatelliteDataset(csv_file='./train.csv', transform=transform_deeplab, args=args)
-            dataset_7 = SatelliteDataset(csv_file='./train.csv', transform=transform_deeplab, args=args)
-            dataset_8 = SatelliteDataset(csv_file='./train.csv', transform=transform_deeplab, args=args)
-            dataset = torch.utils.data.ConcatDataset([dataset_1, dataset_2, dataset_3, dataset_4, dataset_5, dataset_6, dataset_7, dataset_8])
         else:
             raise NotImplementedError
         
@@ -131,8 +186,8 @@ if __name__ == '__main__':
 
         train_set, val_set = torch.utils.data.random_split(dataset, [train_size, val_size])
 
-        train_dataloader = DataLoader(train_set, batch_size=16, shuffle=True, num_workers=4)
-        val_dataloader = DataLoader(val_set, batch_size=16, shuffle=True, num_workers=4)
+        train_dataloader = DataLoader(train_set, batch_size=64, shuffle=True, num_workers=4)
+        val_dataloader = DataLoader(val_set, batch_size=64, shuffle=True, num_workers=4)
     else:
         raise NotImplementedError
         # from utils import transform
@@ -163,6 +218,8 @@ if __name__ == '__main__':
     inference_mask = None
 
     lowest_loss_yet = 100000
+
+    model = torch.nn.DataParallel(model, device_ids=[0, 1, 2, 3])
 
     # training loop
     for epoch in range(args.epochs):
@@ -204,54 +261,56 @@ if __name__ == '__main__':
 
             epoch_loss += loss.item()
 
-        with torch.no_grad():
-            model.eval()
-            val_loss = 0
-            val_dice_score = []
-            for images, masks in tqdm(val_dataloader):
-                if len(images.shape) == 5:
-                    images = torch.stack(images)
-                    masks = torch.stack(masks)
+        # with torch.no_grad():
+        #     model.eval()
+        #     val_loss = 0
+        #     val_dice_score = []
+        #     for images, masks in tqdm(val_dataloader):
+        #         if len(images.shape) == 5:
+        #             images = torch.stack(images)
+        #             masks = torch.stack(masks)
+        #
+        #         images = images.float().to(device)
+        #         masks = masks.float().to(device)
+        #
+        #         if args.model == 'DeepLabV3':
+        #             outputs = torch.sigmoid(model(images)['out'])
+        #             val_loss = criterion(outputs.squeeze(), masks.squeeze())
+        #
+        #             numpy_outputs = outputs.squeeze().cpu().numpy()
+        #
+        #             # cast to uint8
+        #             mask_05 = (numpy_outputs > 0.5).astype(np.uint8).astype(np.float32)
+        #             mask_03 = (numpy_outputs > 0.3).astype(np.uint8).astype(np.float32)
+        #             mask_02 = (numpy_outputs > 0.2).astype(np.uint8).astype(np.float32)
+        #
+        #             from utils import dice_score
+        #             dice_score_05 = dice_score(mask_05, masks.squeeze().cpu().numpy())
+        #             dice_score_03 = dice_score(mask_03, masks.squeeze().cpu().numpy())
+        #             dice_score_02 = dice_score(mask_02, masks.squeeze().cpu().numpy())
+        #
+        #             val_dice_score.append([dice_score_05, dice_score_03, dice_score_02])
+        #
+        #         else:
+        #             outputs = model(images)
+        #             masks = F.one_hot(torch.tensor(masks).to(torch.int64), num_classes=2).permute(0, 3, 1, 2).float().to(
+        #                 device)
+        #             val_loss = criterion(outputs, masks)
+        #             val_loss += val_loss.item()
+        #
+        #
+        #     if args.model == 'DeepLabV3':
+        #         val_dice_score = np.mean(val_dice_score, axis=0)
+        #         print(f'val_loss {val_loss / len(val_dataloader)} val_dice_score_05 {val_dice_score[0]}, val_dice_score_03 {val_dice_score[1]}, val_dice_score_02 {val_dice_score[0]}')
+        #         logger.info(f'val_loss {val_loss / len(val_dataloader)} val_dice_score_05 {val_dice_score[0]}, val_dice_score_03 {val_dice_score[1]}, val_dice_score_02 {val_dice_score[0]}')
+        #     else:
+        #         print(f'val_loss {val_loss / len(val_dataloader)}')
+        #         logger.info(f'val_loss {val_loss / len(val_dataloader)}')
 
-                images = images.float().to(device)
-                masks = masks.float().to(device)
 
-                if args.model == 'DeepLabV3':
-                    outputs = torch.sigmoid(model(images)['out'])
-                    val_loss = criterion(outputs.squeeze(), masks.squeeze())
+            # if lowest_loss_yet > val_loss / len(val_dataloader):
+            # lowest_loss_yet = val_loss / len(val_dataloader)
+        save_model(model, fname)
+        print(f'lowest loss, saving current model at epoch: {epoch}')
 
-                    numpy_outputs = outputs.squeeze().cpu().numpy()
-
-                    # cast to uint8
-                    mask_05 = (numpy_outputs > 0.5).astype(np.uint8).astype(np.float32)
-                    mask_03 = (numpy_outputs > 0.3).astype(np.uint8).astype(np.float32)
-                    mask_02 = (numpy_outputs > 0.2).astype(np.uint8).astype(np.float32)
-
-                    from utils import dice_score
-                    dice_score_05 = dice_score(mask_05, masks.squeeze().cpu().numpy())
-                    dice_score_03 = dice_score(mask_03, masks.squeeze().cpu().numpy())
-                    dice_score_02 = dice_score(mask_02, masks.squeeze().cpu().numpy())
-
-                    val_dice_score.append([dice_score_05, dice_score_03, dice_score_02])
-
-                else:
-                    outputs = model(images)
-                    masks = F.one_hot(torch.tensor(masks).to(torch.int64), num_classes=2).permute(0, 3, 1, 2).float().to(
-                        device)
-                    val_loss = criterion(outputs, masks)
-                    val_loss += val_loss.item()
-
-
-            if args.model == 'DeepLabV3':
-                val_dice_score = np.mean(val_dice_score, axis=0)
-                print(f'val_loss {val_loss / len(val_dataloader)} val_dice_score_05 {val_dice_score[0]}, val_dice_score_03 {val_dice_score[1]}, val_dice_score_02 {val_dice_score[0]}')
-                logger.info(f'val_loss {val_loss / len(val_dataloader)} val_dice_score_05 {val_dice_score[0]}, val_dice_score_03 {val_dice_score[1]}, val_dice_score_02 {val_dice_score[0]}')
-            else:
-                print(f'val_loss {val_loss / len(val_dataloader)}')
-                logger.info(f'val_loss {val_loss / len(val_dataloader)}')
-
-
-            if lowest_loss_yet > val_loss / len(val_dataloader):
-                lowest_loss_yet = val_loss / len(val_dataloader)
-                save_model(model, fname)
-                print(f'lowest loss, saving current model at epoch: {epoch}')
+    save_model(model, fname + '_final')
