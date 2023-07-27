@@ -18,7 +18,7 @@ if __name__ == '__main__':
     parser.add_argument('-m', '--model', type=str, default="DeepLabV3",
         choices=["Unet", "Unet++", "FPN", "PSPNet", "DeepLabV3", "DeepLabV3+"])
     parser.add_argument('--model_dir', type=str, default=None)
-    parser.add_argument('--mask_ratio', type=float, default=0.35)
+    parser.add_argument('--mask_ratio', type=float, default=0.2)
     args = parser.parse_args()
 
     time = datetime.now().strftime('%m_%d_%H:%M:%S')
@@ -43,9 +43,10 @@ if __name__ == '__main__':
 
     # model initialization
     model, _ = load_model(args.model)
+    model.to(device)
+    model = torch.nn.DataParallel(model, device_ids=[0, 1, 2, 3])
     if args.model_dir:
         model.load_state_dict(torch.load(model_dir))
-    model.to(device)
 
     with torch.no_grad():
         model.eval()
