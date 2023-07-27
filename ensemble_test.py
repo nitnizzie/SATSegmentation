@@ -24,10 +24,7 @@ if __name__ == '__main__':
     time = datetime.now().strftime('%m_%d_%H:%M:%S')
 
     if args.model_dir:
-        input_list = args.model_dir
-        print("List of input strings:", input_list)
-        for idx, model_dir in enumerate(input_list):
-            input_list[idx] = f'./models/{model_dir}'
+        model_dir = f'./models/{args.model_dir}'
     else:
         print("No input strings provided.")
 
@@ -67,7 +64,8 @@ if __name__ == '__main__':
         model.eval()
         result=[]
         output_list = []
-        for test_dataloader, i in test_dataloader_list:
+        for i in range(len(test_dataloader_list)):
+            test_dataloader = test_dataloader_list[i]
             partial_result = []
             for images in tqdm(test_dataloader):
                 images = images.float().to(device)
