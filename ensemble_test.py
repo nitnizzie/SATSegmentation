@@ -39,41 +39,15 @@ if __name__ == '__main__':
     std = [0.229, 0.224, 0.225]
 
     transform_list = []
-    transform_list.append(A.Compose(
-        [
-            A.Resize(224, 224),
-            A.Normalize(mean=mean, std=std, always_apply=True),
-            A.pytorch.ToTensorV2(),
-        ]
-    ))
-    transform_list.append(A.Compose(
-        [
-            A.Resize(224, 224),
-            # Rotate 90
-            A.Affine(rotate=90, always_apply=True),
-            A.Normalize(mean=mean, std=std, always_apply=True),
-            A.pytorch.ToTensorV2(),
-        ]
-    ))
-    transform_list.append(A.Compose(
-        [
-            A.Resize(224, 224),
-            # Rotate 180
-            A.Affine(rotate=180, always_apply=True),
-            A.Normalize(mean=mean, std=std, always_apply=True),
-            A.pytorch.ToTensorV2(),
-        ]
-    ))
-    transform_list.append(A.Compose(
-        [
-            A.Resize(224, 224),
-            # Rotate 270
-            A.Affine(rotate=270, always_apply=True),
-            A.Normalize(mean=mean, std=std, always_apply=True),
-            A.pytorch.ToTensorV2(),
-        ]
-    ))
-
+    for i in range(4):
+        transform_list.append(A.Compose(
+            [
+                A.Resize(224, 224),
+                A.Affine(rotate=90*i, always_apply=True),
+                A.Normalize(mean=mean, std=std, always_apply=True),
+                A.pytorch.ToTensorV2(),
+            ]
+        ))
 
     test_dataset_list = []
     for transform in transform_list:
